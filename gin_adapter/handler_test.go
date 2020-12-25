@@ -7,15 +7,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/IRelaxxx/servefiles/v3/gin_adapter"
 	"github.com/gin-gonic/gin"
 	. "github.com/onsi/gomega"
-	"github.com/rickb777/servefiles/v3/gin_adapter"
 	"github.com/spf13/afero"
 )
 
 func ExampleHandlerFunc() {
 	// This is a webserver using the asset handler provided by
-	// github.com/rickb777/servefiles/v3, which has enhanced
+	// github.com/IRelaxxx/servefiles/v3, which has enhanced
 	// HTTP expiry, cache control, compression etc.
 	// 'Normal' bespoke handlers are included as needed.
 

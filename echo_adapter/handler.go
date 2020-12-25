@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/IRelaxxx/servefiles/v3"
 	"github.com/labstack/echo/v4"
-	"github.com/rickb777/servefiles/v3"
 	"github.com/spf13/afero"
 )
 
@@ -49,6 +49,14 @@ func (a EchoAssets) WithMaxAge(maxAge time.Duration) *EchoAssets {
 // The returned handler is a new copy of the original one.
 func (a EchoAssets) WithNotFound(notFound http.Handler) *EchoAssets {
 	a.NotFound = notFound
+	return &a
+}
+
+// WithSPA alters the handler so that all requestet files without a file extention instead return index.html
+//
+// The returned handler is a new copy of the original one.
+func (a EchoAssets) WithSPA() *EchoAssets {
+	a.Spa = true
 	return &a
 }
 
