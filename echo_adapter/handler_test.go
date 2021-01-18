@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/IRelaxxx/servefiles/v3/echo_adapter"
+	"github.com/daubit/servefiles/v3/echo_adapter"
 	"github.com/labstack/echo/v4"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/afero"
@@ -15,7 +15,7 @@ import (
 
 func ExampleHandlerFunc() {
 	// This is a webserver using the asset handler provided by
-	// github.com/IRelaxxx/servefiles/v3, which has enhanced
+	// github.com/daubit/servefiles/v3, which has enhanced
 	// HTTP expiry, cache control, compression etc.
 	// 'Normal' bespoke handlers are included as needed.
 

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/IRelaxxx/servefiles/v3"
+	"github.com/daubit/servefiles/v3"
 	"github.com/labstack/echo/v4"
 	"github.com/spf13/afero"
 )

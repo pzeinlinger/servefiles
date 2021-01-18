@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/IRelaxxx/servefiles/v3"
+	"github.com/daubit/servefiles/v3"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/afero"
 )

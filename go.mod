@@ -1,4 +1,4 @@
-module github.com/IRelaxxx/servefiles/v3
+module github.com/daubit/servefiles/v3
 
 go 1.15
 
