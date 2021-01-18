@@ -7,7 +7,7 @@ import (
 
 	"github.com/spf13/afero"
 
-	"github.com/rickb777/servefiles/v3"
+	"github.com/IRelaxxx/servefiles/v3"
 )
 
 func ExampleNewAssetHandler() {

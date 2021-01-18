@@ -14,7 +14,7 @@ Please see the [GoDoc](https://godoc.org/github.com/rickb777/servefiles) for mor
 
 ## Installation
 
-    go get -u github.com/rickb777/servefiles/v3
+    go get -u github.com/IRelaxxx/servefiles/v3
 
 ## MaxAge
 
@@ -24,6 +24,10 @@ User agents can cache responses. This http server enables easy support for two s
  * MaxAge response headers allow the user agent to cache entities until some expiry time.
 
 Note that conditional requests (RFC7232) and MaxAge caching (RFC7234) can work together as required. Conditional requests still require network round trips, whereas caching removes all network round-trips until the entities reach their expiry time. 
+
+## SPA support
+
+There is support for serving SPA webpage by using WithSPA() this serves index.html for all resources that do not have a file extension
 
 ## Gin Adapter
 

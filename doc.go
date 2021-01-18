@@ -95,6 +95,11 @@ being new, and they will later drop old versions from their cache regardless of 
 So you get the far-future lifespan combined with being able to push out changed assets as often as you need to.
 
 
+SPA support
+
+There is support for serving SPA webpage by using WithSPA() this serves index.html for all resources that do not have a file extension
+
+
 Example Usage
 
 To serve files with a ten-year expiry, this creates a suitably-configured handler:

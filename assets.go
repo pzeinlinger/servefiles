@@ -62,6 +62,7 @@ type Assets struct {
 	timestamp        int64
 	timestampExpiry  string
 	lock             *sync.Mutex
+	Spa              bool
 }
 
 // Type conformance proof
@@ -122,6 +123,14 @@ func (a Assets) WithNotFound(notFound http.Handler) *Assets {
 	return &a
 }
 
+// WithSPA alters the handler so that all requestet files without a file extention instead return index.html
+//
+// The returned handler is a new copy of the original one.
+func (a Assets) WithSPA() *Assets {
+	a.Spa = true
+	return &a
+}
+
 //-------------------------------------------------------------------------------------------------
 
 // Calculate the 'Expires' value using an approximation that reduces unimportant re-calculation.
@@ -150,6 +159,21 @@ func (a *Assets) expires() string {
 }
 
 //-------------------------------------------------------------------------------------------------
+
+func isSPARequest(resource string) bool {
+	// two cases
+	// 1. there is no dot -> "/" or some other path was requested
+	// 2. there is a dot, so check if the last dot is after the last slash, if that is a case it is a filepath
+	if strings.Count(resource, ".") == 0 {
+		return true
+	}
+	lastDot := strings.LastIndex(resource, ".")
+	lastSlash := strings.LastIndex(resource, "/")
+	if lastDot < lastSlash {
+		return true
+	}
+	return false
+}
 
 type fileData struct {
 	resource string
@@ -200,6 +224,9 @@ func (a *Assets) checkResource(resource string, header http.Header) fileData {
 
 func (a *Assets) chooseResource(header http.Header, req *http.Request) (string, code) {
 	resource := path.Drop(req.URL.Path, a.UnwantedPrefixSegments)
+	if a.Spa && isSPARequest(resource) {
+		resource = "/"
+	}
 	if strings.HasSuffix(resource, "/") {
 		resource += indexPage
 	}
