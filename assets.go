@@ -128,6 +128,7 @@ func (a Assets) WithNotFound(notFound http.Handler) *Assets {
 // The returned handler is a new copy of the original one.
 func (a Assets) WithSPA() *Assets {
 	a.Spa = true
+	a.MaxAge = 0
 	return &a
 }
 
@@ -235,6 +236,8 @@ func (a *Assets) chooseResource(header http.Header, req *http.Request) (string, 
 	if a.MaxAge > 0 {
 		header.Set("Expires", a.expires())
 		header.Set("Cache-Control", fmt.Sprintf("public, maxAge=%d", a.MaxAge/time.Second))
+	} else {
+		header.Set("Cache-Control", "no-store, maxAge=0")
 	}
 
 	acceptEncoding := commaSeparatedList(req.Header.Get("Accept-Encoding"))
