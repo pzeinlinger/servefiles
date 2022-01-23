@@ -24,6 +24,7 @@ package servefiles
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	. "net/url"
@@ -435,6 +436,31 @@ func TestServeHTTP304(t *testing.T) {
 			isEqual(t, headers["Vary"], emptyStrings, i)
 			isEqual(t, headers["Etag"], []string{etag}, i)
 		}
+	}
+}
+
+func TestSPA(t *testing.T) {
+	cases := []struct {
+		path, conType, response string
+		code                    int
+	}{
+		{"/img/nonexisting.js", "text/plain; charset=utf-8", "404 Not found\n", 404},
+		{"/img/nonexisting", "", "", 301},
+		{"/img.de/nonexisting", "", "", 301},
+	}
+
+	for i, test := range cases {
+		url := mustUrl("http://localhost:8001" + test.path)
+		request := &http.Request{Method: "GET", URL: url}
+		a := NewAssetHandler("./assets/").WithSPA()
+		isEqual(t, a.Spa, true, i)
+		w := httptest.NewRecorder()
+
+		a.ServeHTTP(w, request)
+		log.Printf(w.Body.String())
+		isEqual(t, w.Code, test.code, i)
+		isEqual(t, w.Header().Get("Content-Type"), test.conType, i)
+		isEqual(t, w.Body.String(), test.response, i)
 	}
 }
 

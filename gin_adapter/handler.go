@@ -27,8 +27,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/daubit/servefiles/v3"
 	"github.com/gin-gonic/gin"
-	"github.com/rickb777/servefiles/v3"
 	"github.com/spf13/afero"
 )
 
@@ -76,6 +76,14 @@ func (a GinAssets) WithMaxAge(maxAge time.Duration) *GinAssets {
 // The returned handler is a new copy of the original one.
 func (a GinAssets) WithNotFound(notFound http.Handler) *GinAssets {
 	a.NotFound = notFound
+	return &a
+}
+
+// WithSPA alters the handler so that all requestet files without a file extention instead return index.html
+//
+// The returned handler is a new copy of the original one.
+func (a GinAssets) WithSPA() *GinAssets {
+	a.Spa = true
 	return &a
 }
 

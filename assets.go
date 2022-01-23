@@ -64,6 +64,7 @@ type Assets struct {
 	timestamp        int64
 	timestampExpiry  string
 	lock             *sync.Mutex
+	Spa              bool
 }
 
 // Type conformance proof
@@ -134,6 +135,15 @@ func (a Assets) WithNotFound(notFound http.Handler) *Assets {
 	return &a
 }
 
+// WithSPA alters the handler so that all requestet files without a file extention instead return index.html
+//
+// The returned handler is a new copy of the original one.
+func (a Assets) WithSPA() *Assets {
+	a.Spa = true
+	a.MaxAge = 0
+	return &a
+}
+
 //-------------------------------------------------------------------------------------------------
 
 // Calculate the 'Expires' value using an approximation that reduces unimportant re-calculation.
@@ -162,6 +172,21 @@ func (a *Assets) expires() string {
 }
 
 //-------------------------------------------------------------------------------------------------
+
+func isSPARequest(resource string) bool {
+	// two cases
+	// 1. there is no dot -> "/" or some other path was requested
+	// 2. there is a dot, so check if the last dot is after the last slash, if that is a case it is a filepath
+	if strings.Count(resource, ".") == 0 {
+		return true
+	}
+	lastDot := strings.LastIndex(resource, ".")
+	lastSlash := strings.LastIndex(resource, "/")
+	if lastDot < lastSlash {
+		return true
+	}
+	return false
+}
 
 type fileData struct {
 	resource string
@@ -219,6 +244,9 @@ func removeLeadingSlash(name string) string {
 
 func (a *Assets) chooseResource(header http.Header, req *http.Request) (string, code) {
 	resource := path.Drop(req.URL.Path, a.UnwantedPrefixSegments)
+	if a.Spa && isSPARequest(resource) {
+		resource = "/"
+	}
 	if strings.HasSuffix(resource, "/") {
 		resource += indexPage
 	}
@@ -227,6 +255,8 @@ func (a *Assets) chooseResource(header http.Header, req *http.Request) (string, 
 	if a.MaxAge > 0 {
 		header.Set("Expires", a.expires())
 		header.Set("Cache-Control", fmt.Sprintf("public, maxAge=%d", a.MaxAge/time.Second))
+	} else {
+		header.Set("Cache-Control", "no-store, maxAge=0")
 	}
 
 	acceptEncoding := commaSeparatedList(req.Header.Get("Accept-Encoding"))
