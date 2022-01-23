@@ -140,7 +140,6 @@ func (a Assets) WithNotFound(notFound http.Handler) *Assets {
 // The returned handler is a new copy of the original one.
 func (a Assets) WithSPA() *Assets {
 	a.Spa = true
-	a.MaxAge = 0
 	return &a
 }
 
@@ -252,13 +251,12 @@ func (a *Assets) chooseResource(header http.Header, req *http.Request) (string, 
 	}
 	Debugf("Assets chooseResource %s %s %s\n", req.Method, req.URL.Path, resource)
 
-	if a.MaxAge > 0 {
+	if a.Spa && strings.HasSuffix(resource, indexPage) {
+		header.Set("Cache-Control", "no-store, maxAge=0")
+	} else if a.MaxAge > 0 {
 		header.Set("Expires", a.expires())
 		header.Set("Cache-Control", fmt.Sprintf("public, maxAge=%d", a.MaxAge/time.Second))
-	} else {
-		header.Set("Cache-Control", "no-store, maxAge=0")
 	}
-
 	acceptEncoding := commaSeparatedList(req.Header.Get("Accept-Encoding"))
 	if acceptEncoding.Contains("br") {
 		brotli := resource + ".br"
@@ -313,6 +311,11 @@ func (a *Assets) chooseResource(header http.Header, req *http.Request) (string, 
 // all the standard logic paths implemented there, including conditional
 // requests and content negotiation.
 func (a *Assets) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	original := req.URL.Path
+	if strings.HasSuffix(original, "index.html") {
+		a.server.ServeHTTP(w, req)
+		return
+	}
 	resource, code := a.chooseResource(w.Header(), req)
 
 	if code == NotFound && a.NotFound != nil {
@@ -328,12 +331,12 @@ func (a *Assets) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	if code >= 400 {
 		Debugf("Assets ServeHTTP (error %d) %s %s R:%+v W:%+v\n", code, req.Method, req.URL.Path, req.Header, w.Header())
+		Debugf("Assets ServeHTTP (error %d) %s %s R:%+v W:%+v\n", code, req.Method, req.URL.Path, req.Header, w.Header())
 		http.Error(w, code.String(), int(code))
 		return
 	}
 
-	original := req.URL.Path
-	req.URL.Path = resource
+	req.URL.Path = strings.TrimSuffix(resource, "index.html")
 
 	// Conditional requests and content negotiation are handled in the standard net/http API.
 	// Note that req.URL remains unchanged, even if prefix stripping is turned on, because the resource is

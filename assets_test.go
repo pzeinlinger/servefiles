@@ -73,14 +73,13 @@ func TestChooseResourceSimpleDirNoGzip(t *testing.T) {
 
 		a.ServeHTTP(w, request)
 
-		isEqual(t, w.Code, 301, i)
+		isEqual(t, w.Code, 200, i)
 		//isEqual(t, message, "", test.path)
 		isEqual(t, len(w.Header()["Expires"]), 1, i)
 		isGte(t, len(w.Header()["Expires"][0]), 25, i)
 		//fmt.Println(headers["Expires"])
 		isEqual(t, w.Header()["Cache-Control"], []string{test.cacheControl}, i)
 		isEqual(t, w.Header()["Etag"], []string{etag}, i)
-		isEqual(t, w.Body.Len(), 0, i)
 	}
 }
 
@@ -443,16 +442,29 @@ func TestSPA(t *testing.T) {
 	cases := []struct {
 		path, conType, response string
 		code                    int
+		headers                 map[string][]string
 	}{
-		{"/img/nonexisting.js", "text/plain; charset=utf-8", "404 Not found\n", 404},
-		{"/img/nonexisting", "", "", 301},
-		{"/img.de/nonexisting", "", "", 301},
+		{"/img/nonexisting", "text/html; charset=utf-8", "<html></html>", 200, map[string][]string{
+			"Cache-Control": {"no-store, maxAge=0"},
+		}},
+		{"/", "text/html; charset=utf-8", "<html></html>", 200, map[string][]string{
+			"Cache-Control": {"no-store, maxAge=0"},
+		}},
+		{"/index.html", "", "", 301, map[string][]string{
+			"Location": {"./"},
+		}},
+		{"/img/nonexisting.js", "text/plain; charset=utf-8", "404 Not found\n", 404, map[string][]string{
+			"Cache-Control": {"public, maxAge=1"},
+		}},
+		{"/img.de/nonexisting", "text/html; charset=utf-8", "<html></html>", 200, map[string][]string{
+			"Cache-Control": {"no-store, maxAge=0"},
+		}},
 	}
+	a := NewAssetHandler("./assets/").WithSPA().WithMaxAge(1 * time.Second)
 
 	for i, test := range cases {
 		url := mustUrl("http://localhost:8001" + test.path)
 		request := &http.Request{Method: "GET", URL: url}
-		a := NewAssetHandler("./assets/").WithSPA()
 		isEqual(t, a.Spa, true, i)
 		w := httptest.NewRecorder()
 
@@ -461,6 +473,13 @@ func TestSPA(t *testing.T) {
 		isEqual(t, w.Code, test.code, i)
 		isEqual(t, w.Header().Get("Content-Type"), test.conType, i)
 		isEqual(t, w.Body.String(), test.response, i)
+
+		if test.headers != nil {
+			headers := w.Header()
+			for header, strings := range test.headers {
+				isEqual(t, headers[header], strings, i)
+			}
+		}
 	}
 }
 
