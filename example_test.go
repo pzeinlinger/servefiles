@@ -29,7 +29,7 @@ import (
 
 	"github.com/spf13/afero"
 
-	"github.com/daubit/servefiles/v3"
+	"github.com/pzeinlinger/servefiles/v3"
 )
 
 func ExampleNewAssetHandler() {

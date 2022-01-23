@@ -14,7 +14,7 @@ Please see the [GoDoc](https://godoc.org/github.com/rickb777/servefiles) for mor
 
 ## Installation
 
-    go get -u github.com/daubit/servefiles/v3
+    go get -u github.com/pzeinlinger/servefiles/v3
 
 ## MaxAge
 

@@ -32,7 +32,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/daubit/servefiles/v3"
+	"github.com/pzeinlinger/servefiles/v3"
 )
 
 var path = flag.String("path", "..", "directory for the files tp be served")

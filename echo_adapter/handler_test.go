@@ -30,12 +30,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/daubit/servefiles/v3/afero2"
+	"github.com/pzeinlinger/servefiles/v3/afero2"
 
-	"github.com/daubit/servefiles/v3/echo_adapter"
-	"github.com/daubit/servefiles/v3/testdata"
 	"github.com/labstack/echo/v4"
 	. "github.com/onsi/gomega"
+	"github.com/pzeinlinger/servefiles/v3/echo_adapter"
+	"github.com/pzeinlinger/servefiles/v3/testdata"
 	"github.com/spf13/afero"
 )
 
@@ -46,7 +46,7 @@ const (
 
 func ExampleHandlerFunc() {
 	// This is a webserver using the asset handler provided by
-	// github.com/daubit/servefiles/v3, which has enhanced
+	// github.com/pzeinlinger/servefiles/v3, which has enhanced
 	// HTTP expiry, cache control, compression etc.
 	// 'Normal' bespoke handlers are included as needed.
 

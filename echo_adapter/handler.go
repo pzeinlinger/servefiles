@@ -28,8 +28,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/daubit/servefiles/v3"
 	"github.com/labstack/echo/v4"
+	"github.com/pzeinlinger/servefiles/v3"
 	"github.com/spf13/afero"
 )
 
