@@ -104,7 +104,6 @@ func TestHandlerAferoFunc(t *testing.T) {
 
 	g.Expect(w.Code).To(Equal(200))
 	g.Expect(w.Header().Get("Content-Type")).To(Equal("text/plain; charset=utf-8"))
-	g.Expect(w.Header().Get("Expires")).NotTo(Equal(""))
 	g.Expect(w.Body.Len()).To(Equal(5))
 
 	r, _ = http.NewRequest(http.MethodHead, "http://localhost/files/101/foo/bar/x.txt", nil)
@@ -113,7 +112,6 @@ func TestHandlerAferoFunc(t *testing.T) {
 
 	g.Expect(w.Code).To(Equal(200))
 	g.Expect(w.Header().Get("Content-Type")).To(Equal("text/plain; charset=utf-8"))
-	g.Expect(w.Header().Get("Expires")).NotTo(Equal(""))
 	g.Expect(w.Body.Len()).To(Equal(0))
 
 	r, _ = http.NewRequest(http.MethodHead, "http://localhost/files/101/foo/baz.png", nil)
@@ -150,7 +148,6 @@ func TestHandlerFunc_with_EmbedFS(t *testing.T) {
 
 	g.Expect(w.Code).To(Equal(200))
 	g.Expect(w.Header().Get("Content-Type")).To(Equal(javascriptMimeType))
-	g.Expect(w.Header().Get("Expires")).NotTo(Equal(""))
 	g.Expect(w.Body.Len()).To(Equal(19))
 
 	r, _ = http.NewRequest(http.MethodHead, "http://localhost/files/101/js/script1.js", nil)
@@ -159,7 +156,6 @@ func TestHandlerFunc_with_EmbedFS(t *testing.T) {
 
 	g.Expect(w.Code).To(Equal(200))
 	g.Expect(w.Header().Get("Content-Type")).To(Equal(javascriptMimeType))
-	g.Expect(w.Header().Get("Expires")).NotTo(Equal(""))
 	g.Expect(w.Body.Len()).To(Equal(0))
 
 	r, _ = http.NewRequest(http.MethodHead, "http://localhost/files/101/img/baz.png", nil)

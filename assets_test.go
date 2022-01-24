@@ -75,9 +75,6 @@ func TestChooseResourceSimpleDirNoGzip(t *testing.T) {
 
 		isEqual(t, w.Code, 200, i)
 		//isEqual(t, message, "", test.path)
-		isEqual(t, len(w.Header()["Expires"]), 1, i)
-		isGte(t, len(w.Header()["Expires"][0]), 25, i)
-		//fmt.Println(headers["Expires"])
 		isEqual(t, w.Header()["Cache-Control"], []string{test.cacheControl}, i)
 		isEqual(t, w.Header()["Etag"], []string{etag}, i)
 	}
@@ -105,9 +102,6 @@ func TestChooseResourceSimpleNoGzip(t *testing.T) {
 
 		isEqual(t, w.Code, 200, i)
 		//isEqual(t, message, "", test.path)
-		isEqual(t, len(w.Header()["Expires"]), 1, i)
-		isGte(t, len(w.Header()["Expires"][0]), 25, i)
-		//fmt.Println(headers["Expires"])
 		isEqual(t, w.Header()["Cache-Control"], []string{test.cacheControl}, i)
 		isEqual(t, w.Header()["Etag"], []string{etag}, i)
 		isEqual(t, w.Body.Len(), 160, i)
@@ -138,7 +132,6 @@ func TestChooseResourceSimpleNonExistent(t *testing.T) {
 		isGte(t, len(w.Header()), 4, i)
 		isEqual(t, w.Header().Get("Content-Type"), "text/plain; charset=utf-8", i)
 		isEqual(t, w.Header().Get("Cache-Control"), "public, maxAge=1", i)
-		isGte(t, len(w.Header().Get("Expires")), 25, i)
 	}
 }
 
@@ -174,8 +167,6 @@ func TestServeHTTP200WithGzipAndGzipWithAcceptHeader(t *testing.T) {
 		isEqual(t, headers["Content-Encoding"], []string{"gzip"}, test.path)
 		isEqual(t, headers["Vary"], []string{"Accept-Encoding"}, test.path)
 		isEqual(t, headers["Etag"], []string{"W/" + etag}, test.path)
-		isEqual(t, len(headers["Expires"]), 1, test.path)
-		isGte(t, len(headers["Expires"][0]), 25, test.path)
 	}
 }
 
@@ -211,8 +202,6 @@ func TestServeHTTP200WithBrAndBrWithAcceptHeader(t *testing.T) {
 		isEqual(t, headers["Content-Encoding"], []string{"br"}, test.path)
 		isEqual(t, headers["Vary"], []string{"Accept-Encoding"}, test.path)
 		isEqual(t, headers["Etag"], []string{"W/" + etag}, test.path)
-		isEqual(t, len(headers["Expires"]), 1, test.path)
-		isGte(t, len(headers["Expires"][0]), 25, test.path)
 	}
 }
 
@@ -247,8 +236,6 @@ func TestServeHTTP200WithGzipButNoAcceptHeader(t *testing.T) {
 		isEqual(t, headers["Content-Encoding"], emptyStrings, test.path)
 		isEqual(t, headers["Vary"], emptyStrings, test.path)
 		isEqual(t, headers["Etag"], []string{etag}, test.path)
-		isEqual(t, len(headers["Expires"]), 1, test.path)
-		isGte(t, len(headers["Expires"][0]), 25, test.path)
 	}
 }
 
@@ -291,8 +278,6 @@ func TestServeHTTP200WithGzipAcceptHeaderButNoGzippedFile(t *testing.T) {
 		isEqual(t, headers["Content-Encoding"], emptyStrings, test.path)
 		isEqual(t, headers["Vary"], emptyStrings, test.path)
 		isEqual(t, headers["Etag"], []string{etag}, test.path)
-		isEqual(t, len(headers["Expires"]), 1, test.path)
-		isGte(t, len(headers["Expires"][0]), 25, test.path)
 	}
 }
 
