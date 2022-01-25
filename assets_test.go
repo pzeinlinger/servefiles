@@ -61,14 +61,14 @@ func TestChooseResourceSimpleDirNoGzip(t *testing.T) {
 		maxAge                  time.Duration
 		url, path, cacheControl string
 	}{
-		{0, 1, "/", "assets/index.html", "public, maxAge=1"},
+		{0, 1, "/", "assets/index.html", "public, max-age=1"},
 	}
 
 	for i, test := range cases {
 		etag := etagFor(test.path)
 		url := mustUrl(test.url)
 		request := &http.Request{Method: "GET", URL: url}
-		a := NewAssetHandler("./assets/").StripOff(test.n).WithMaxAge(test.maxAge * time.Second)
+		a := NewAssetHandler("./assets/").WithCacheDirective(CacheDirectivePublic).StripOff(test.n).WithMaxAge(test.maxAge * time.Second)
 		w := httptest.NewRecorder()
 
 		a.ServeHTTP(w, request)
@@ -86,16 +86,16 @@ func TestChooseResourceSimpleNoGzip(t *testing.T) {
 		maxAge                  time.Duration
 		url, path, cacheControl string
 	}{
-		{0, 1, "/img/sort_asc.png", "assets/img/sort_asc.png", "public, maxAge=1"},
-		{0, 3671, "/img/sort_asc.png", "assets/img/sort_asc.png", "public, maxAge=3671"},
-		{3, 3671, "/x/y/z/img/sort_asc.png", "assets/img/sort_asc.png", "public, maxAge=3671"},
+		{0, 1, "/img/sort_asc.png", "assets/img/sort_asc.png", "public, max-age=1"},
+		{0, 3671, "/img/sort_asc.png", "assets/img/sort_asc.png", "public, max-age=3671"},
+		{3, 3671, "/x/y/z/img/sort_asc.png", "assets/img/sort_asc.png", "public, max-age=3671"},
 	}
 
 	for i, test := range cases {
 		etag := etagFor(test.path)
 		url := mustUrl(test.url)
 		request := &http.Request{Method: "GET", URL: url}
-		a := NewAssetHandler("./assets/").StripOff(test.n).WithMaxAge(test.maxAge * time.Second)
+		a := NewAssetHandler("./assets/").WithCacheDirective(CacheDirectivePublic).StripOff(test.n).WithMaxAge(test.maxAge * time.Second)
 		w := httptest.NewRecorder()
 
 		a.ServeHTTP(w, request)
@@ -122,7 +122,7 @@ func TestChooseResourceSimpleNonExistent(t *testing.T) {
 	for i, test := range cases {
 		url := mustUrl(test.url)
 		request := &http.Request{Method: "GET", URL: url}
-		a := NewAssetHandler("./assets/").StripOff(test.n).WithMaxAge(test.maxAge)
+		a := NewAssetHandler("./assets/").WithCacheDirective(CacheDirectivePublic).StripOff(test.n).WithMaxAge(test.maxAge)
 		w := httptest.NewRecorder()
 
 		a.ServeHTTP(w, request)
@@ -131,7 +131,7 @@ func TestChooseResourceSimpleNonExistent(t *testing.T) {
 		//t.Logf("header %v", w.Header())
 		isGte(t, len(w.Header()), 4, i)
 		isEqual(t, w.Header().Get("Content-Type"), "text/plain; charset=utf-8", i)
-		isEqual(t, w.Header().Get("Cache-Control"), "public, maxAge=1", i)
+		isEqual(t, w.Header().Get("Cache-Control"), "public, max-age=1", i)
 	}
 }
 
@@ -141,10 +141,10 @@ func TestServeHTTP200WithGzipAndGzipWithAcceptHeader(t *testing.T) {
 		maxAge                                  time.Duration
 		url, mime, encoding, path, cacheControl string
 	}{
-		{0, 1, "/css/style1.css", cssMimeType, "xx, gzip, zzz", "assets/css/style1.css.gz", "public, maxAge=1"},
-		{2, 1, "/a/b/css/style1.css", cssMimeType, "xx, gzip, zzz", "assets/css/style1.css.gz", "public, maxAge=1"},
-		{0, 1, "/js/script1.js", javascriptMimeType, "xx, gzip, zzz", "assets/js/script1.js.gz", "public, maxAge=1"},
-		{2, 1, "/a/b/js/script1.js", javascriptMimeType, "xx, gzip, zzz", "assets/js/script1.js.gz", "public, maxAge=1"},
+		{0, 1, "/css/style1.css", cssMimeType, "xx, gzip, zzz", "assets/css/style1.css.gz", "public, max-age=1"},
+		{2, 1, "/a/b/css/style1.css", cssMimeType, "xx, gzip, zzz", "assets/css/style1.css.gz", "public, max-age=1"},
+		{0, 1, "/js/script1.js", javascriptMimeType, "xx, gzip, zzz", "assets/js/script1.js.gz", "public, max-age=1"},
+		{2, 1, "/a/b/js/script1.js", javascriptMimeType, "xx, gzip, zzz", "assets/js/script1.js.gz", "public, max-age=1"},
 	}
 
 	for _, test := range cases {
@@ -152,7 +152,7 @@ func TestServeHTTP200WithGzipAndGzipWithAcceptHeader(t *testing.T) {
 		url := mustUrl(test.url)
 		header := newHeader("Accept-Encoding", test.encoding)
 		request := &http.Request{Method: "GET", URL: url, Header: header}
-		a := NewAssetHandler("./assets/").StripOff(test.n).WithMaxAge(test.maxAge * time.Second)
+		a := NewAssetHandler("./assets/").WithCacheDirective(CacheDirectivePublic).StripOff(test.n).WithMaxAge(test.maxAge * time.Second)
 		w := httptest.NewRecorder()
 
 		a.ServeHTTP(w, request)
@@ -176,10 +176,10 @@ func TestServeHTTP200WithBrAndBrWithAcceptHeader(t *testing.T) {
 		maxAge                                  time.Duration
 		url, mime, encoding, path, cacheControl string
 	}{
-		{0, 1, "/css/style1.css", cssMimeType, "br, gzip, zzz", "assets/css/style1.css.br", "public, maxAge=1"},
-		{2, 1, "/a/b/css/style1.css", cssMimeType, "br, gzip, zzz", "assets/css/style1.css.br", "public, maxAge=1"},
-		{0, 1, "/js/script1.js", javascriptMimeType, "br, gzip, zzz", "assets/js/script1.js.br", "public, maxAge=1"},
-		{2, 1, "/a/b/js/script1.js", javascriptMimeType, "br, gzip, zzz", "assets/js/script1.js.br", "public, maxAge=1"},
+		{0, 1, "/css/style1.css", cssMimeType, "br, gzip, zzz", "assets/css/style1.css.br", "public, max-age=1"},
+		{2, 1, "/a/b/css/style1.css", cssMimeType, "br, gzip, zzz", "assets/css/style1.css.br", "public, max-age=1"},
+		{0, 1, "/js/script1.js", javascriptMimeType, "br, gzip, zzz", "assets/js/script1.js.br", "public, max-age=1"},
+		{2, 1, "/a/b/js/script1.js", javascriptMimeType, "br, gzip, zzz", "assets/js/script1.js.br", "public, max-age=1"},
 	}
 
 	for _, test := range cases {
@@ -187,7 +187,7 @@ func TestServeHTTP200WithBrAndBrWithAcceptHeader(t *testing.T) {
 		url := mustUrl(test.url)
 		header := newHeader("Accept-Encoding", test.encoding)
 		request := &http.Request{Method: "GET", URL: url, Header: header}
-		a := NewAssetHandler("./assets/").StripOff(test.n).WithMaxAge(test.maxAge * time.Second)
+		a := NewAssetHandler("./assets/").WithCacheDirective(CacheDirectivePublic).StripOff(test.n).WithMaxAge(test.maxAge * time.Second)
 		w := httptest.NewRecorder()
 
 		a.ServeHTTP(w, request)
@@ -211,10 +211,10 @@ func TestServeHTTP200WithGzipButNoAcceptHeader(t *testing.T) {
 		maxAge                                  time.Duration
 		url, mime, encoding, path, cacheControl string
 	}{
-		{0, 1, "/css/style1.css", cssMimeType, "xx, yy, zzz", "assets/css/style1.css", "public, maxAge=1"},
-		{2, 2, "/a/b/css/style1.css", cssMimeType, "xx, yy, zzz", "assets/css/style1.css", "public, maxAge=2"},
-		{0, 3, "/js/script1.js", javascriptMimeType, "xx, yy, zzz", "assets/js/script1.js", "public, maxAge=3"},
-		{2, 4, "/a/b/js/script1.js", javascriptMimeType, "xx, yy, zzz", "assets/js/script1.js", "public, maxAge=4"},
+		{0, 1, "/css/style1.css", cssMimeType, "xx, yy, zzz", "assets/css/style1.css", "public, max-age=1"},
+		{2, 2, "/a/b/css/style1.css", cssMimeType, "xx, yy, zzz", "assets/css/style1.css", "public, max-age=2"},
+		{0, 3, "/js/script1.js", javascriptMimeType, "xx, yy, zzz", "assets/js/script1.js", "public, max-age=3"},
+		{2, 4, "/a/b/js/script1.js", javascriptMimeType, "xx, yy, zzz", "assets/js/script1.js", "public, max-age=4"},
 	}
 
 	for _, test := range cases {
@@ -222,7 +222,7 @@ func TestServeHTTP200WithGzipButNoAcceptHeader(t *testing.T) {
 		url := mustUrl(test.url)
 		header := newHeader("Accept-Encoding", test.encoding)
 		request := &http.Request{Method: "GET", URL: url, Header: header}
-		a := NewAssetHandler("./assets/").StripOff(test.n).WithMaxAge(test.maxAge * time.Second)
+		a := NewAssetHandler("./assets/").WithCacheDirective(CacheDirectivePublic).StripOff(test.n).WithMaxAge(test.maxAge * time.Second)
 		w := httptest.NewRecorder()
 
 		a.ServeHTTP(w, request)
@@ -245,18 +245,18 @@ func TestServeHTTP200WithGzipAcceptHeaderButNoGzippedFile(t *testing.T) {
 		maxAge                                  time.Duration
 		url, mime, encoding, path, cacheControl string
 	}{
-		{0, 1, "/css/style2.css", cssMimeType, "xx, gzip, zzz", "assets/css/style2.css", "public, maxAge=1"},
-		{0, 1, "/css/style2.css", cssMimeType, "br, gzip, zzz", "assets/css/style2.css", "public, maxAge=1"},
-		{2, 2, "/a/b/css/style2.css", cssMimeType, "xx, gzip, zzz", "assets/css/style2.css", "public, maxAge=2"},
-		{2, 2, "/a/b/css/style2.css", cssMimeType, "br, gzip, zzz", "assets/css/style2.css", "public, maxAge=2"},
-		{0, 3, "/js/script2.js", javascriptMimeType, "xx, gzip, zzz", "assets/js/script2.js", "public, maxAge=3"},
-		{0, 3, "/js/script2.js", javascriptMimeType, "br, gzip, zzz", "assets/js/script2.js", "public, maxAge=3"},
-		{2, 4, "/a/b/js/script2.js", javascriptMimeType, "xx, gzip, zzz", "assets/js/script2.js", "public, maxAge=4"},
-		{2, 4, "/a/b/js/script2.js", javascriptMimeType, "br, gzip, zzz", "assets/js/script2.js", "public, maxAge=4"},
-		{0, 5, "/img/sort_asc.png", "image/png", "xx, gzip, zzz", "assets/img/sort_asc.png", "public, maxAge=5"},
-		{0, 5, "/img/sort_asc.png", "image/png", "br, gzip, zzz", "assets/img/sort_asc.png", "public, maxAge=5"},
-		{2, 6, "/a/b/img/sort_asc.png", "image/png", "xx, gzip, zzz", "assets/img/sort_asc.png", "public, maxAge=6"},
-		{2, 6, "/a/b/img/sort_asc.png", "image/png", "br, gzip, zzz", "assets/img/sort_asc.png", "public, maxAge=6"},
+		{0, 1, "/css/style2.css", cssMimeType, "xx, gzip, zzz", "assets/css/style2.css", "public, max-age=1"},
+		{0, 1, "/css/style2.css", cssMimeType, "br, gzip, zzz", "assets/css/style2.css", "public, max-age=1"},
+		{2, 2, "/a/b/css/style2.css", cssMimeType, "xx, gzip, zzz", "assets/css/style2.css", "public, max-age=2"},
+		{2, 2, "/a/b/css/style2.css", cssMimeType, "br, gzip, zzz", "assets/css/style2.css", "public, max-age=2"},
+		{0, 3, "/js/script2.js", javascriptMimeType, "xx, gzip, zzz", "assets/js/script2.js", "public, max-age=3"},
+		{0, 3, "/js/script2.js", javascriptMimeType, "br, gzip, zzz", "assets/js/script2.js", "public, max-age=3"},
+		{2, 4, "/a/b/js/script2.js", javascriptMimeType, "xx, gzip, zzz", "assets/js/script2.js", "public, max-age=4"},
+		{2, 4, "/a/b/js/script2.js", javascriptMimeType, "br, gzip, zzz", "assets/js/script2.js", "public, max-age=4"},
+		{0, 5, "/img/sort_asc.png", "image/png", "xx, gzip, zzz", "assets/img/sort_asc.png", "public, max-age=5"},
+		{0, 5, "/img/sort_asc.png", "image/png", "br, gzip, zzz", "assets/img/sort_asc.png", "public, max-age=5"},
+		{2, 6, "/a/b/img/sort_asc.png", "image/png", "xx, gzip, zzz", "assets/img/sort_asc.png", "public, max-age=6"},
+		{2, 6, "/a/b/img/sort_asc.png", "image/png", "br, gzip, zzz", "assets/img/sort_asc.png", "public, max-age=6"},
 	}
 
 	for _, test := range cases {
@@ -264,7 +264,7 @@ func TestServeHTTP200WithGzipAcceptHeaderButNoGzippedFile(t *testing.T) {
 		url := mustUrl(test.url)
 		header := newHeader("Accept-Encoding", test.encoding)
 		request := &http.Request{Method: "GET", URL: url, Header: header}
-		a := NewAssetHandler("./assets/").StripOff(test.n).WithMaxAge(test.maxAge * time.Second)
+		a := NewAssetHandler("./assets/").WithCacheDirective(CacheDirectivePublic).StripOff(test.n).WithMaxAge(test.maxAge * time.Second)
 		w := httptest.NewRecorder()
 
 		a.ServeHTTP(w, request)
@@ -303,7 +303,7 @@ func Test404Handler(t *testing.T) {
 	for i, test := range cases {
 		url := mustUrl("" + test.path)
 		request := &http.Request{Method: "GET", URL: url}
-		a := NewAssetHandler("./assets/").WithNotFound(test.notFound)
+		a := NewAssetHandler("./assets/").WithCacheDirective(CacheDirectivePublic).WithNotFound(test.notFound)
 		isEqual(t, a.NotFound, test.notFound, i)
 		w := httptest.NewRecorder()
 
@@ -394,7 +394,7 @@ func TestServeHTTP304(t *testing.T) {
 		url := mustUrl(test.url)
 		header := newHeader("Accept-Encoding", test.encoding, "If-None-Match", etag)
 		request := &http.Request{Method: "GET", URL: url, Header: header}
-		a := NewAssetHandler("./assets/").WithNotFound(test.notFound)
+		a := NewAssetHandler("./assets/").WithCacheDirective(CacheDirectivePublic).WithNotFound(test.notFound)
 		w := httptest.NewRecorder()
 
 		a.ServeHTTP(w, request)
@@ -430,23 +430,22 @@ func TestSPA(t *testing.T) {
 		headers                 map[string][]string
 	}{
 		{"/img/nonexisting", "text/html; charset=utf-8", "<html></html>", 200, map[string][]string{
-			"Cache-Control": {"no-store, maxAge=0"},
+			"Cache-Control": {"no-store, max-age=0"},
 		}},
 		{"/", "text/html; charset=utf-8", "<html></html>", 200, map[string][]string{
-			"Cache-Control": {"no-store, maxAge=0"},
+			"Cache-Control": {"no-store, max-age=0"},
 		}},
 		{"/index.html", "", "", 301, map[string][]string{
 			"Location": {"./"},
 		}},
 		{"/img/nonexisting.js", "text/plain; charset=utf-8", "404 Not found\n", 404, map[string][]string{
-			"Cache-Control": {"public, maxAge=1"},
+			"Cache-Control": {"public, max-age=1"},
 		}},
 		{"/img.de/nonexisting", "text/html; charset=utf-8", "<html></html>", 200, map[string][]string{
-			"Cache-Control": {"no-store, maxAge=0"},
+			"Cache-Control": {"no-store, max-age=0"},
 		}},
 	}
-	a := NewAssetHandler("./assets/").WithSPA().WithMaxAge(1 * time.Second)
-
+	a := NewAssetHandler("./assets/").WithCacheDirective(CacheDirectivePublic).WithSPA().WithMaxAge(1 * time.Second)
 	for i, test := range cases {
 		url := mustUrl("http://localhost:8001" + test.path)
 		request := &http.Request{Method: "GET", URL: url}
@@ -465,6 +464,28 @@ func TestSPA(t *testing.T) {
 				isEqual(t, headers[header], strings, i)
 			}
 		}
+	}
+}
+
+func TestCacheDirectives(t *testing.T) {
+	cases := []struct {
+		handler      *Assets
+		path         string
+		cacheControl string
+	}{
+		// No duration set
+		{NewAssetHandler("./assets/").WithCacheDirective(CacheDirectiveImmutable), "/css/style1.css", ""},
+		{NewAssetHandler("./assets/").WithMaxAge(10 * time.Second), "/css/style1.css", "public, max-age=10"},
+		{NewAssetHandler("./assets/").WithMaxAge(10 * time.Second).WithCacheDirective(CacheDirectivePrivate), "/css/style1.css", "private, max-age=10"},
+		{NewAssetHandler("./assets/").WithMaxAge(10 * time.Second).WithCacheDirective(CacheDirectiveImmutable), "/css/style1.css", "immutable, max-age=10"},
+	}
+	for i, test := range cases {
+		url := mustUrl("http://localhost:8081" + test.path)
+		request := &http.Request{Method: "GET", URL: url}
+		w := httptest.NewRecorder()
+
+		test.handler.ServeHTTP(w, request)
+		isEqual(t, w.Header().Get("Cache-Control"), test.cacheControl, i)
 	}
 }
 
@@ -527,7 +548,7 @@ func Benchmark(t *testing.B) {
 		}
 
 		for _, age := range ages {
-			a := NewAssetHandler("./assets/").StripOff(test.strip).WithMaxAge(age)
+			a := NewAssetHandler("./assets/").WithCacheDirective(CacheDirectivePublic).StripOff(test.strip).WithMaxAge(age)
 
 			t.Run(fmt.Sprintf("%s~%s~%v~%d~%v", test.url, test.enc, etagOn, test.code, age), func(b *testing.B) {
 				b.StopTimer()

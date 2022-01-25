@@ -42,6 +42,14 @@ import (
 // This needs to track the same string in net/http (which is unlikely ever to change)
 const indexPage = "index.html"
 
+type CacheDirective = string
+
+const (
+	CacheDirectivePublic    CacheDirective = "public"
+	CacheDirectivePrivate   CacheDirective = "private"
+	CacheDirectiveImmutable CacheDirective = "immutable"
+)
+
 // Assets sets the options for asset handling. Use AssetHandler to create the handler(s) you need.
 type Assets struct {
 	// Choose a number greater than zero to strip off some leading segments from the URL path. This helps if
@@ -65,6 +73,7 @@ type Assets struct {
 	timestampExpiry  string
 	lock             *sync.Mutex
 	Spa              bool
+	CacheDirectives  []CacheDirective
 }
 
 // Type conformance proof
@@ -116,13 +125,14 @@ func (a Assets) StripOff(unwantedPrefixSegments int) *Assets {
 }
 
 // WithMaxAge alters the handler to set the specified max age on the served assets.
-//
+// Defaults to cache directive public
 // The returned handler is a new copy of the original one.
 func (a Assets) WithMaxAge(maxAge time.Duration) *Assets {
 	if maxAge < 0 {
 		panic("Negative maxAge")
 	}
 	a.MaxAge = maxAge
+	a.CacheDirectives = []CacheDirective{CacheDirectivePublic}
 	return &a
 }
 
@@ -143,31 +153,9 @@ func (a Assets) WithSPA() *Assets {
 	return &a
 }
 
-//-------------------------------------------------------------------------------------------------
-
-// Calculate the 'Expires' value using an approximation that reduces unimportant re-calculation.
-// We don't need to do this accurately because the 'Cache-Control' maxAge value takes precedence
-// anyway. So the value is cached and shared between requests for a short while.
-func (a *Assets) expires() string {
-	if a.expiryElasticity == 0 {
-		// lazy initialisation
-		a.expiryElasticity = 1 + a.MaxAge/100
-	}
-
-	now := time.Now().UTC()
-	unix := now.Unix()
-
-	if unix > a.timestamp {
-		later := now.Add(a.MaxAge + a.expiryElasticity) // add expiryElasticity to avoid negative expiry
-		a.lock.Lock()
-		defer a.lock.Unlock()
-		// cache the formatted string for one second to avoid repeated formatting
-		// race condition is ignored here, but note the order below
-		a.timestampExpiry = later.Format(time.RFC1123)
-		a.timestamp = unix + int64(a.expiryElasticity)
-	}
-
-	return a.timestampExpiry
+func (a Assets) WithCacheDirective(ds ...CacheDirective) *Assets {
+	a.CacheDirectives = ds
+	return &a
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -252,10 +240,13 @@ func (a *Assets) chooseResource(header http.Header, req *http.Request) (string, 
 	Debugf("Assets chooseResource %s %s %s\n", req.Method, req.URL.Path, resource)
 
 	if a.Spa && strings.HasSuffix(resource, indexPage) {
-		header.Set("Cache-Control", "no-store, maxAge=0")
+		header.Set("Cache-Control", "no-store, max-age=0")
 	} else if a.MaxAge > 0 {
-		header.Set("Expires", a.expires())
-		header.Set("Cache-Control", fmt.Sprintf("public, maxAge=%d", a.MaxAge/time.Second))
+		params := append(
+			a.CacheDirectives,
+			fmt.Sprintf("max-age=%d", a.MaxAge/time.Second),
+		)
+		header.Set("Cache-Control", strings.Join(params, ", "))
 	}
 	acceptEncoding := commaSeparatedList(req.Header.Get("Accept-Encoding"))
 	if acceptEncoding.Contains("br") {
